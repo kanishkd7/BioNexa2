@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: bionexa-backend
+spec:
+  selector:
+    app: bionexa-backend
+  ports:
+    - name: http
+      port: 5000
+      targetPort: 5000
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bionexa-frontend
+spec:
+  selector:
+    app: bionexa-frontend
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+  type: LoadBalancer
+

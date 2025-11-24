@@ -1,0 +1,44 @@
+version: "3.9"
+
+services:
+  # Local MongoDB (commented out - using MongoDB Atlas instead)
+  # mongo:
+  #   image: mongo:6
+  #   container_name: bionexa-mongo
+  #   restart: always
+  #   environment:
+  #     MONGO_INITDB_ROOT_USERNAME: root
+  #     MONGO_INITDB_ROOT_PASSWORD: example
+  #   ports:
+  #     - "27017:27017"
+  #   volumes:
+  #     - mongo-data:/data/db
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: bionexa-backend
+    restart: always
+    env_file:
+      - ./backend/.env   # <-- loads secrets safely
+    environment:
+      NODE_ENV: production
+      MONGO_URL: "mongodb+srv://kanishkdeshpande7_db_user:djGtfYAheA8zfqX6@bionexa.ttikn9e.mongodb.net/bionexa?retryWrites=true&w=majority"
+    ports:
+      - "5000:5000"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: bionexa-frontend
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "3000:80"
+
+volumes:
+  mongo-data:
+
