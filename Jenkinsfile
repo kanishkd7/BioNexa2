@@ -56,9 +56,9 @@ spec:
     }
 
     environment {
-        NAMESPACE = "2401077"
+        NAMESPACE = "2401199"
         NEXUS_HOST = "nexus-service-for-docker-hosted-registry.nexus.svc.cluster.local:8085"
-        NEXUS_REPO = "ecommerce-2401077"
+        NEXUS_REPO = "bionexa-2401199"
     }
 
     stages {
@@ -72,13 +72,11 @@ spec:
         /* FRONTEND BUILD */
         stage('Install + Build Frontend') {
             steps {
-                dir('frontend') {
-                    container('node') {
-                        sh '''
-                            npm install
-                            CI=false npm run build
-                        '''
-                    }
+                container('node') {
+                    sh '''
+                        npm install
+                        CI=false npm run build
+                    '''
                 }
             }
         }
@@ -99,8 +97,8 @@ spec:
             steps {
                 container("dind") {
                     sh """
-                        docker build -t ecommerce-frontend:latest -f frontend/Dockerfile frontend/
-                        docker build -t ecommerce-backend:latest  -f backend/Dockerfile backend/
+                        docker build -t bionexa-frontend:latest -f Dockerfile .
+                        docker build -t bionexa-backend:latest  -f backend/Dockerfile backend/
                     """
                 }
             }
@@ -112,10 +110,10 @@ spec:
                 container('sonar-scanner') {
                     sh '''
                         sonar-scanner \
-                            -Dsonar.projectKey=Ecommerce-Project2401077 \
+                            -Dsonar.projectKey=kanishk_2401042 \
                             -Dsonar.sources=backend,frontend \
                             -Dsonar.host.url=http://my-sonarqube-sonarqube.sonarqube.svc.cluster.local:9000 \
-                            -Dsonar.token=sqp_f3125bc1a5232a0f26c25425a4185377bfa05370
+                            -Dsonar.token=sqa_3ce964483bdae2421c16016ac37cf436f968894f
                     '''
                 }
             }
@@ -139,11 +137,11 @@ spec:
             steps {
                 container("dind") {
                     sh """
-                        docker tag ecommerce-frontend:latest ${NEXUS_HOST}/${NEXUS_REPO}/ecommerce-frontend:v1
-                        docker tag ecommerce-backend:latest  ${NEXUS_HOST}/${NEXUS_REPO}/ecommerce-backend:v1
+                        docker tag bionexa-frontend:latest ${NEXUS_HOST}/${NEXUS_REPO}/bionexa-frontend:v1
+                        docker tag bionexa-backend:latest  ${NEXUS_HOST}/${NEXUS_REPO}/bionexa-backend:v1
 
-                        docker push ${NEXUS_HOST}/${NEXUS_REPO}/ecommerce-frontend:v1
-                        docker push ${NEXUS_HOST}/${NEXUS_REPO}/ecommerce-backend:v1
+                        docker push ${NEXUS_HOST}/${NEXUS_REPO}/bionexa-frontend:v1
+                        docker push ${NEXUS_HOST}/${NEXUS_REPO}/bionexa-backend:v1
                     """
                 }
             }
@@ -165,8 +163,8 @@ spec:
                         kubectl apply -n ${NAMESPACE} -f k8s/service.yaml
 
                         echo "===== Rollout Status ====="
-                        kubectl rollout status deployment/ecommerce-frontend -n ${NAMESPACE} --timeout=60s || true
-                        kubectl rollout status deployment/ecommerce-backend -n ${NAMESPACE} --timeout=60s || true
+                        kubectl rollout status deployment/bionexa-frontend -n ${NAMESPACE} --timeout=60s || true
+                        kubectl rollout status deployment/bionexa-backend -n ${NAMESPACE} --timeout=60s || true
 
                         echo "===== Pods ====="
                         kubectl get pods -n ${NAMESPACE}
