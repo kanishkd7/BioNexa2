@@ -90,7 +90,7 @@ spec:
                 container('dind') {
                     sh '''
                         docker login nexus-service-for-docker-hosted-registry.nexus.svc.cluster.local:8085 \
-                        -u admin -p Changeme@2025
+                        -u student -p Imcc@2025
                     '''
                 }
             }
