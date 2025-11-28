@@ -8,35 +8,44 @@ spec:
   containers:
 
   - name: node
-    image: node:18
-    command: ['cat']
+    image: mirror.gcr.io/library/node:20
+    command: ["cat"]
     tty: true
 
   - name: sonar-scanner
     image: sonarsource/sonar-scanner-cli
-    command: ['cat']
+    command: ["cat"]
     tty: true
 
   - name: kubectl
     image: bitnami/kubectl:latest
-    command: ['cat']
+    command:
+      - /bin/sh
+      - -c
+      - sleep infinity
     tty: true
+    securityContext:
+      runAsUser: 0
+      readOnlyRootFilesystem: false
     env:
-    - name: KUBECONFIG
-      value: /kube/config
+      - name: KUBECONFIG
+        value: /kube/config
     volumeMounts:
-    - name: kubeconfig-secret
-      mountPath: /kube/config
-      subPath: kubeconfig
+      - name: kubeconfig-secret
+        mountPath: /kube/config
+        subPath: kubeconfig
 
   - name: dind
     image: docker:dind
-    args: ["--storage-driver=overlay2"]
+    args:
+      - "--storage-driver=overlay2"
+      - "--insecure-registry=nexus.imcc.com:8085"
+      - "--insecure-registry=nexus-service-for-docker-hosted-registry.nexus.svc.cluster.local:8085"
     securityContext:
       privileged: true
     env:
-    - name: DOCKER_TLS_CERTDIR
-      value: ""
+      - name: DOCKER_TLS_CERTDIR
+        value: ""
 
   volumes:
   - name: kubeconfig-secret
@@ -46,81 +55,121 @@ spec:
         }
     }
 
+    environment {
+        NAMESPACE = "2401077"
+        NEXUS_HOST = "nexus-service-for-docker-hosted-registry.nexus.svc.cluster.local:8085"
+        NEXUS_REPO = "ecommerce-2401077"
+    }
+
     stages {
 
+        stage("CHECK") {
+            steps {
+                echo "Lightweight Jenkinsfile started for ${NAMESPACE}"
+            }
+        }
+
+        /* FRONTEND BUILD */
         stage('Install + Build Frontend') {
             steps {
-                container('node') {
-                    sh '''
-                        npm install
-                        CI=false npm run build
-                    '''
+                dir('frontend') {
+                    container('node') {
+                        sh '''
+                            npm install
+                            npm run build
+                        '''
+                    }
                 }
             }
         }
 
-        stage('Build Docker Image') {
+        /* BACKEND INSTALL */
+        stage('Install Backend') {
             steps {
-                container('dind') {
-                    sh '''
-                        sleep 10
-                        docker build -t bionexa-frontend:latest .
-                        docker build -t bionexa-backend:latest .
-                    '''
+                dir('backend') {
+                    container('node') {
+                        sh 'npm install'
+                    }
                 }
             }
         }
 
+        /* DOCKER BUILD */
+        stage("Build Docker Images") {
+            steps {
+                container("dind") {
+                    sh """
+                        docker build -t ecommerce-frontend:latest -f frontend/Dockerfile frontend/
+                        docker build -t ecommerce-backend:latest  -f backend/Dockerfile backend/
+                    """
+                }
+            }
+        }
+
+        /* SONARQUBE */
         stage('SonarQube Analysis') {
             steps {
                 container('sonar-scanner') {
                     sh '''
                         sonar-scanner \
-                            -Dsonar.projectKey=kanishk_2401042 \
-                            -Dsonar.sources=. \
+                            -Dsonar.projectKey=Ecommerce-Project2401077 \
+                            -Dsonar.sources=backend,frontend \
                             -Dsonar.host.url=http://my-sonarqube-sonarqube.sonarqube.svc.cluster.local:9000 \
-                            -Dsonar.login=sqp_e02c3cd72ed1f9c384e571a64f298437fcd4af45
+                            -Dsonar.token=sqp_f3125bc1a5232a0f26c25425a4185377bfa05370
                     '''
                 }
             }
         }
 
-        stage('Login to Nexus Registry') {
+        /* LOGIN TO NEXUS */
+        stage("Login to Nexus") {
             steps {
-                container('dind') {
-                    sh '''
-                        docker login nexus-service-for-docker-hosted-registry.nexus.svc.cluster.local:8085 \
-                        -u student -p Imcc@2025
-                    '''
+                container("dind") {
+                    sh """
+                        docker login http://${NEXUS_HOST} \
+                          -u student \
+                          -p Imcc@2025
+                    """
                 }
             }
         }
 
-        stage('Push to Nexus') {
+        /* PUSH IMAGES */
+        stage("Push Images") {
             steps {
-                container('dind') {
-                    sh '''
-                        # Tag correctly
-                        docker tag bionexa-frontend:latest nexus-service-for-docker-hosted-registry.nexus.svc.cluster.local:8085/bionexa_kanishk/bionexa-frontend:v1
+                container("dind") {
+                    sh """
+                        docker tag ecommerce-frontend:latest ${NEXUS_HOST}/${NEXUS_REPO}/ecommerce-frontend:v1
+                        docker tag ecommerce-backend:latest  ${NEXUS_HOST}/${NEXUS_REPO}/ecommerce-backend:v1
 
-                        docker tag bionexa-backend:latest nexus-service-for-docker-hosted-registry.nexus.svc.cluster.local:8085/bionexa_kanishk/bionexa-backend:v1
-
-                        # Push correctly
-                        docker push nexus-service-for-docker-hosted-registry.nexus.svc.cluster.local:8085/bionexa_kanishk/bionexa-frontend:v1
-                        docker push nexus-service-for-docker-hosted-registry.nexus.svc.cluster.local:8085/bionexa_kanishk/bionexa-backend:v1
-                    '''
+                        docker push ${NEXUS_HOST}/${NEXUS_REPO}/ecommerce-frontend:v1
+                        docker push ${NEXUS_HOST}/${NEXUS_REPO}/ecommerce-backend:v1
+                    """
                 }
             }
         }
 
+        /* KUBERNETES DEPLOY */
         stage('Deploy to Kubernetes') {
             steps {
                 container('kubectl') {
                     sh '''
-                        kubectl apply -f k8s/deployment.yaml
-                        kubectl apply -f k8s/service.yaml
-        
-                        kubectl rollout status deployment/recipe-finder-deployment -n 2401199
+                        echo "===== Using kubeconfig ====="
+                        ls -l /kube || true
+                        cat /kube/config || true
+
+                        echo "===== Applying Deployment ====="
+                        kubectl apply -n ${NAMESPACE} -f k8s/deployment.yaml
+
+                        echo "===== Applying Service ====="
+                        kubectl apply -n ${NAMESPACE} -f k8s/service.yaml
+
+                        echo "===== Rollout Status ====="
+                        kubectl rollout status deployment/ecommerce-frontend -n ${NAMESPACE} --timeout=60s || true
+                        kubectl rollout status deployment/ecommerce-backend -n ${NAMESPACE} --timeout=60s || true
+
+                        echo "===== Pods ====="
+                        kubectl get pods -n ${NAMESPACE}
                     '''
                 }
             }
