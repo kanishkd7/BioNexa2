@@ -7,6 +7,33 @@ import './DoctorDashboard.css';
 import { toast } from 'react-hot-toast';
 import VideoCall from './VideoCall';
 
+const buildTimeSlots = (sourceSlots = [], daysToShow = 7) => {
+  const slots = [];
+  const today = new Date();
+
+  for (let i = 0; i < daysToShow; i++) {
+    const date = new Date(today);
+    date.setDate(today.getDate() + i);
+    const dateStr = date.toISOString().split('T')[0];
+
+    for (let hour = 9; hour <= 17; hour++) {
+      const time = `${hour.toString().padStart(2, '0')}:00`;
+      const existingSlot = sourceSlots.find((s) => s.date === dateStr && s.time === time) || {};
+
+      slots.push({
+        date: dateStr,
+        time,
+        isAvailable: existingSlot.isAvailable || false,
+        isBooked: existingSlot.isBooked || false,
+        patientLimit: existingSlot.patientLimit || 1,
+        currentBookings: existingSlot.currentBookings || 0
+      });
+    }
+  }
+
+  return slots;
+};
+
 const DoctorDashboard = () => {
   const [doctor, setDoctor] = useState(null);
   const [appointments, setAppointments] = useState([]);
@@ -122,12 +149,12 @@ const DoctorDashboard = () => {
         let slots = [];
         if (availabilityData.success) {
           if (!availabilityData.data || availabilityData.data.length === 0) {
-            slots = generateTimeSlots();
+            slots = buildTimeSlots();
           } else {
             slots = availabilityData.data;
           }
         } else {
-          slots = generateTimeSlots();
+          slots = buildTimeSlots();
         }
 
         // Count current bookings for each slot
@@ -267,40 +294,6 @@ const DoctorDashboard = () => {
     
     setTodayAppointments(todayAppts);
     setUpcomingAppointments(upcomingAppts);
-  };
-
-  const generateTimeSlots = () => {
-    const slots = [];
-    const today = new Date();
-    const daysToShow = 7; // Show next 7 days
-
-    // Get existing slots to preserve their data
-    const existingSlots = availability || [];
-
-    for (let i = 0; i < daysToShow; i++) {
-      const date = new Date(today);
-      date.setDate(today.getDate() + i);
-      const dateStr = date.toISOString().split('T')[0];
-
-      // Generate time slots from 9 AM to 5 PM
-      for (let hour = 9; hour <= 17; hour++) {
-        const time = `${hour.toString().padStart(2, '0')}:00`;
-        
-        // Check if this slot already exists
-        const existingSlot = existingSlots.find(s => s.date === dateStr && s.time === time);
-        
-        slots.push({
-          date: dateStr,
-          time,
-          isAvailable: existingSlot?.isAvailable || false,
-          isBooked: existingSlot?.isBooked || false,
-          patientLimit: existingSlot?.patientLimit || 1,
-          currentBookings: existingSlot?.currentBookings || 0
-        });
-      }
-    }
-
-    return slots;
   };
 
   const handleAvailabilityToggle = (date, time) => {
@@ -1154,7 +1147,7 @@ const DoctorDashboard = () => {
                   className="select-all-btn" 
                   onClick={() => {
                     // If tempAvailability is empty, use generated slots
-                    const slots = tempAvailability.length === 0 ? generateTimeSlots() : tempAvailability;
+                    const slots = tempAvailability.length === 0 ? buildTimeSlots(availability) : tempAvailability;
                     const updatedSlots = slots.map(slot => ({ ...slot, isAvailable: true }));
                     setTempAvailability(updatedSlots);
                   }}
@@ -1165,7 +1158,7 @@ const DoctorDashboard = () => {
                   className="deselect-all-btn" 
                   onClick={() => {
                     // If tempAvailability is empty, use generated slots
-                    const slots = tempAvailability.length === 0 ? generateTimeSlots() : tempAvailability;
+                    const slots = tempAvailability.length === 0 ? buildTimeSlots(availability) : tempAvailability;
                     const updatedSlots = slots.map(slot => ({ ...slot, isAvailable: false }));
                     setTempAvailability(updatedSlots);
                   }}
@@ -1197,7 +1190,7 @@ const DoctorDashboard = () => {
                 const ensureSlots = () => {
                   if (!tempAvailability || tempAvailability.length === 0) {
                     console.log('Using generated time slots for display');
-                    return generateTimeSlots();
+                    return buildTimeSlots(availability);
                   }
                   return tempAvailability;
                 };

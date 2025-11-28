@@ -7,9 +7,7 @@ import logo from './assets/logo2.jpg';
 import { auth } from './firebase';
 import { createUserWithEmailAndPassword, sendEmailVerification, signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import Dashboard from './components/Dashboard';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTimes } from '@fortawesome/free-solid-svg-icons';
-import { doc, setDoc, serverTimestamp, getDoc } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from './firebase';
 import DoctorDashboard from './components/DoctorDashboard';
 import { addDoc, collection } from 'firebase/firestore';
@@ -723,64 +721,6 @@ function App() {
     } catch (error) {
       console.error('Error sending verification email:', error);
       toast.error('Failed to send verification email. Please try again later.');
-    }
-  };
-
-  const handleDoctorSignup = async (e) => {
-    e.preventDefault();
-    setError('');
-    
-    if (signupFormData.password !== signupFormData.confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
-
-    try {
-      // Create user account
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        signupFormData.email,
-        signupFormData.password
-      );
-
-      // Send email verification
-      await sendEmailVerification(userCredential.user);
-
-      // Store doctor data in Firestore
-      await setDoc(doc(db, 'doctors', userCredential.user.uid), {
-        name: signupFormData.name,
-        email: signupFormData.email,
-        specialization: signupFormData.specialization,
-        expertise: signupFormData.expertise,
-        experience: signupFormData.experience,
-        education: signupFormData.education,
-        patients: signupFormData.patients,
-        description: signupFormData.description,
-        availableDates: signupFormData.availableDates,
-        availableSlots: signupFormData.availableSlots,
-        createdAt: serverTimestamp()
-      });
-
-      // Show success message and close modal
-      toast.success('Please check your email to verify your account');
-      setShowSignup(false);
-      setSignupFormData({
-        name: '',
-        email: '',
-        password: '',
-        confirmPassword: '',
-        specialization: '',
-        expertise: '',
-        experience: '',
-        education: '',
-        patients: '',
-        description: '',
-        availableDates: [],
-        availableSlots: []
-      });
-    } catch (error) {
-      console.error('Error during doctor signup:', error);
-      setError(error.message);
     }
   };
 
