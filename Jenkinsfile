@@ -78,7 +78,7 @@ spec:
                         sonar-scanner \
                             -Dsonar.projectKey=kanishk_2401042 \
                             -Dsonar.sources=. \
-                            -Dsonar.host.url=http://sonarqube.imcc.com/ \
+                            -Dsonar.host.url=http://my-sonarqube-sonarqube.sonarqube.svc.cluster.local:9000 \
                             -Dsonar.login=sqp_e02c3cd72ed1f9c384e571a64f298437fcd4af45
                     '''
                 }
