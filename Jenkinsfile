@@ -37,6 +37,7 @@ spec:
     env:
     - name: DOCKER_TLS_CERTDIR
       value: ""
+
   volumes:
   - name: kubeconfig-secret
     secret:
@@ -53,7 +54,6 @@ spec:
                     sh '''
                         npm install
                         CI=false npm run build
-
                     '''
                 }
             }
@@ -85,25 +85,29 @@ spec:
             }
         }
 
-
         stage('Login to Nexus Registry') {
             steps {
                 container('dind') {
                     sh '''
-                        docker login nexus-service-for-docker-hosted-registry.nexus.svc.cluster.local:8085 -u admin -p Changeme@2025
+                        docker login nexus-service-for-docker-hosted-registry.nexus.svc.cluster.local:8085 \
+                        -u admin -p Changeme@2025
                     '''
                 }
             }
         }
 
-
         stage('Push to Nexus') {
             steps {
                 container('dind') {
                     sh '''
-                        docker tag bionexa-frontend:latest:latest nexus-service-for-docker-hosted-registry.nexus.svc.cluster.local:8085/bionexa_kansihk/bionexa-frontend:latest:v1
-                        docker tag bionexa-backend:latest:latest nexus-service-for-docker-hosted-registry.nexus.svc.cluster.local:8085/bionexa_kansihk/bionexa-backend:latest:v1
-                        docker push nexus-service-for-docker-hosted-registry.nexus.svc.cluster.local:8085/2401199/recipe-finder:v1
+                        # Tag correctly
+                        docker tag bionexa-frontend:latest nexus-service-for-docker-hosted-registry.nexus.svc.cluster.local:8085/bionexa_kanishk/bionexa-frontend:v1
+
+                        docker tag bionexa-backend:latest nexus-service-for-docker-hosted-registry.nexus.svc.cluster.local:8085/bionexa_kanishk/bionexa-backend:v1
+
+                        # Push correctly
+                        docker push nexus-service-for-docker-hosted-registry.nexus.svc.cluster.local:8085/bionexa_kanishk/bionexa-frontend:v1
+                        docker push nexus-service-for-docker-hosted-registry.nexus.svc.cluster.local:8085/bionexa_kanishk/bionexa-backend:v1
                     '''
                 }
             }
@@ -115,7 +119,7 @@ spec:
         //             sh '''
         //                 kubectl apply -f k8s/deployment.yaml
         //                 kubectl apply -f k8s/service.yaml
-
+        //
         //                 kubectl rollout status deployment/recipe-finder-deployment -n 2401199
         //             '''
         //         }
