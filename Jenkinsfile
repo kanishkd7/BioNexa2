@@ -113,7 +113,7 @@ spec:
                             -Dsonar.projectKey=kanishk_2401042 \
                             -Dsonar.sources=backend,frontend \
                             -Dsonar.host.url=http://my-sonarqube-sonarqube.sonarqube.svc.cluster.local:9000 \
-                            -Dsonar.token=sqa_3ce964483bdae2421c16016ac37cf436f968894f
+                            -Dsonar.token=sqp_9e7ba322bc1dd47884059b67ab927142058408af
                     '''
                 }
             }
