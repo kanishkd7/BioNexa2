@@ -156,6 +156,9 @@ spec:
                         ls -l /kube || true
                         cat /kube/config || true
 
+                        echo "===== Creating Namespace if it doesn't exist ====="
+                        kubectl create namespace ${NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -
+
                         echo "===== Applying Deployment ====="
                         kubectl apply -n ${NAMESPACE} -f k8s/deployment.yaml
 
