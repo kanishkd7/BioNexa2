@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: 127.0.0.1:8085/bionexa_kanishk/bionexa-backend:v1
+          image: 127.0.0.1:3085/bionexa_kanishk/bionexa-backend:v1
           imagePullPolicy: Always
           ports:
             - containerPort: 5000
@@ -55,7 +55,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: 127.0.0.1:8085/bionexa_kanishk/bionexa-frontend:v1
+          image: 127.0.0.1:30085/bionexa_kanishk/bionexa-frontend:v1
           imagePullPolicy: Always
           ports:
             - containerPort: 80
