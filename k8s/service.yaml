@@ -1,35 +1,27 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: face-detection-service
-  namespace: "2401199"
+  name: bionexa-backend
+  namespace: "2401042"
 spec:
   selector:
-    app: face-detection
+    app: bionexa-backend
   ports:
-    - protocol: TCP
-      port: 8000
-      targetPort: 8000
+    - name: http
+      port: 5000
+      targetPort: 5000
   type: ClusterIP
 ---
-apiVersion: networking.k8s.io/v1
-kind: Ingress
+apiVersion: v1
+kind: Service
 metadata:
-  name: face-detection-ingress
-  namespace: "2401199"
-  annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
+  name: bionexa-frontend
+  namespace: "2401042"
 spec:
-  ingressClassName: nginx
-  rules:
-    - host: face.imcc.com
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: face-detection-service
-                port:
-                  number: 8000
-
+  selector:
+    app: bionexa-frontend
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+  type: LoadBalancer
