@@ -56,9 +56,9 @@ spec:
     }
 
     environment {
-        NAMESPACE = "2401199"
+        NAMESPACE = "2401042"
         NEXUS_HOST = "nexus-service-for-docker-hosted-registry.nexus.svc.cluster.local:8085"
-        NEXUS_REPO = "bionexa-2401199"
+        NEXUS_REPO = "bionexa_kanishk"
     }
 
     stages {

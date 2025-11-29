@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: nexus-service-for-docker-hosted-registry.nexus.svc.cluster.local:8085/bionexa-2401199/bionexa-backend:v1
+          image: 127.0.0.1:8085/bionexa_kanishk/bionexa-backend:v1
           imagePullPolicy: Always
           ports:
             - containerPort: 5000
@@ -55,7 +55,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: nexus-service-for-docker-hosted-registry.nexus.svc.cluster.local:8085/bionexa-2401199/bionexa-frontend:v1
+          image: 127.0.0.1:8085/bionexa_kanishk/bionexa-frontend:v1
           imagePullPolicy: Always
           ports:
             - containerPort: 80
