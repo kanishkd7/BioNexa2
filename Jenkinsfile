@@ -59,6 +59,7 @@ spec:
         NAMESPACE = "2401042"
         NEXUS_HOST = "nexus-service-for-docker-hosted-registry.nexus.svc.cluster.local:8085"
         NEXUS_REPO = "bionexa_kanishk"
+        NPM_REGISTRY = "http://nexus.imcc.com:8081/repository/npm-group/"
     }
 
     stages {
@@ -74,7 +75,58 @@ spec:
             steps {
                 container('node') {
                     sh '''
-                        npm install
+                        echo "===== Checking npm version ====="
+                        npm --version
+                        node --version
+                        
+                        echo "===== Clearing npm cache ====="
+                        npm cache clean --force || true
+                        
+                        echo "===== Configuring npm ====="
+                        npm config set fetch-retries 5
+                        npm config set fetch-retry-mintimeout 20000
+                        npm config set fetch-retry-maxtimeout 120000
+                        npm config set fetch-timeout 300000
+                        npm config set strict-ssl false
+                        
+                        # Try to use Nexus registry if available, otherwise use default
+                        if [ -n "${NPM_REGISTRY}" ]; then
+                            echo "Using Nexus registry: ${NPM_REGISTRY}"
+                            npm config set registry ${NPM_REGISTRY}
+                        else
+                            echo "Using default npm registry"
+                        fi
+                        
+                        echo "===== npm config list ====="
+                        npm config list
+                        
+                        echo "===== Installing dependencies ====="
+                        rm -rf node_modules package-lock.json || true
+                        
+                        # Try npm install with better error handling
+                        set +e
+                        npm install --verbose --loglevel=verbose 2>&1 | tee npm-install.log
+                        INSTALL_EXIT_CODE=$?
+                        set -e
+                        
+                        if [ $INSTALL_EXIT_CODE -ne 0 ]; then
+                            echo "===== npm install failed, checking logs ====="
+                            tail -100 npm-install.log || true
+                            echo "===== Trying with --legacy-peer-deps ====="
+                            npm install --legacy-peer-deps --verbose || {
+                                echo "===== Install failed, trying without registry override ====="
+                                npm config delete registry || true
+                                npm install --legacy-peer-deps --verbose || exit 1
+                            }
+                        fi
+                        
+                        echo "===== Verifying installation ====="
+                        if [ ! -d "node_modules" ] || [ ! -f "node_modules/.bin/react-scripts" ]; then
+                            echo "ERROR: node_modules or react-scripts not found after install"
+                            exit 1
+                        fi
+                        
+                        echo "===== Building frontend ====="
                         CI=false npm run build
                     '''
                 }
@@ -86,7 +138,51 @@ spec:
             steps {
                 dir('backend') {
                     container('node') {
-                        sh 'npm install'
+                        sh '''
+                            echo "===== Clearing npm cache ====="
+                            npm cache clean --force || true
+                            
+                            echo "===== Configuring npm ====="
+                            npm config set fetch-retries 5
+                            npm config set fetch-retry-mintimeout 20000
+                            npm config set fetch-retry-maxtimeout 120000
+                            npm config set fetch-timeout 300000
+                            npm config set strict-ssl false
+                            
+                            # Try to use Nexus registry if available, otherwise use default
+                            if [ -n "${NPM_REGISTRY}" ]; then
+                                echo "Using Nexus registry: ${NPM_REGISTRY}"
+                                npm config set registry ${NPM_REGISTRY}
+                            else
+                                echo "Using default npm registry"
+                            fi
+                            
+                            echo "===== Installing dependencies ====="
+                            rm -rf node_modules package-lock.json || true
+                            
+                            # Try npm install with better error handling
+                            set +e
+                            npm install --verbose --loglevel=verbose 2>&1 | tee npm-install.log
+                            INSTALL_EXIT_CODE=$?
+                            set -e
+                            
+                            if [ $INSTALL_EXIT_CODE -ne 0 ]; then
+                                echo "===== npm install failed, checking logs ====="
+                                tail -100 npm-install.log || true
+                                echo "===== Trying with --legacy-peer-deps ====="
+                                npm install --legacy-peer-deps --verbose || {
+                                    echo "===== Install failed, trying without registry override ====="
+                                    npm config delete registry || true
+                                    npm install --legacy-peer-deps --verbose || exit 1
+                                }
+                            fi
+                            
+                            echo "===== Verifying installation ====="
+                            if [ ! -d "node_modules" ]; then
+                                echo "ERROR: node_modules not found after install"
+                                exit 1
+                            fi
+                        '''
                     }
                 }
             }
