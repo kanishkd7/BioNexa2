@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: bionexa-frontend-ingress
+  namespace: "2401042"
+spec:
+  rules:
+    - host: bionexa-2401042.imcc.local  # TODO: confirm with your sir
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: bionexa-frontend
+                port:
+                  number: 80
+
+

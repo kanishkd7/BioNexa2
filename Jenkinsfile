@@ -270,9 +270,12 @@ spec:
                         echo "===== Applying Service ====="
                         kubectl apply -n ${NAMESPACE} -f k8s/service.yaml
 
+                        echo "===== Applying Ingress (if present) ====="
+                        kubectl apply -n ${NAMESPACE} -f k8s/ingress.yaml || true
+
                         echo "===== Rollout Status ====="
-                        kubectl rollout status deployment/bionexa-frontend -n ${NAMESPACE} --timeout=60s || true
-                        kubectl rollout status deployment/bionexa-backend -n ${NAMESPACE} --timeout=60s || true
+                        kubectl rollout status deployment/bionexa-frontend -n ${NAMESPACE} --timeout=300s
+                        kubectl rollout status deployment/bionexa-backend -n ${NAMESPACE} --timeout=300s
 
                         echo "===== Pods ====="
                         kubectl get pods -n ${NAMESPACE}
