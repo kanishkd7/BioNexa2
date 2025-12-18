@@ -59,7 +59,7 @@ spec:
         NAMESPACE = "2401042"
         NEXUS_HOST = "nexus-service-for-docker-hosted-registry.nexus.svc.cluster.local:8085"
         NEXUS_REPO = "bionexa_kanishk"
-        NPM_REGISTRY = "http://nexus.imcc.com:8081/repository/npm-group/"
+        NPM_REGISTRY = ""
     }
 
     stages {
