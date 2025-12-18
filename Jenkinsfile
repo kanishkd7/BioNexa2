@@ -233,11 +233,11 @@ spec:
             steps {
                 container("dind") {
                     sh """
-                        docker tag bionexa-frontend:latest ${NEXUS_HOST}/${NEXUS_REPO}/bionexa-frontend:v1
-                        docker tag bionexa-backend:latest  ${NEXUS_HOST}/${NEXUS_REPO}/bionexa-backend:v1
+                        docker tag bionexa-frontend:latest ${NEXUS_HOST}/bionexa-frontend:v1
+                        docker tag bionexa-backend:latest  ${NEXUS_HOST}/bionexa-backend:v1
 
-                        docker push ${NEXUS_HOST}/${NEXUS_REPO}/bionexa-frontend:v1
-                        docker push ${NEXUS_HOST}/${NEXUS_REPO}/bionexa-backend:v1
+                        docker push ${NEXUS_HOST}/bionexa-frontend:v1
+                        docker push ${NEXUS_HOST}/bionexa-backend:v1
                     """
                 }
             }
