@@ -255,6 +255,15 @@ spec:
                         echo "===== Creating Namespace if it doesn't exist ====="
                         kubectl create namespace ${NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -
 
+                        echo "===== Creating/Updating imagePullSecret for Nexus ====="
+                        kubectl delete secret nexus-secret -n ${NAMESPACE} --ignore-not-found=true
+                        kubectl create secret docker-registry nexus-secret \
+                          --docker-server=${NEXUS_HOST} \
+                          --docker-username=student \
+                          --docker-password=Imcc@2025 \
+                          --docker-email=dummy@example.com \
+                          -n ${NAMESPACE}
+
                         echo "===== Applying Deployment ====="
                         kubectl apply -n ${NAMESPACE} -f k8s/deployment.yaml
 

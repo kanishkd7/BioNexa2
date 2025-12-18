@@ -13,6 +13,8 @@ spec:
       labels:
         app: bionexa-backend
     spec:
+      imagePullSecrets:
+        - name: nexus-secret
       containers:
         - name: backend
           image: nexus-service-for-docker-hosted-registry.nexus.svc.cluster.local:8085/bionexa_kanishk/bionexa-backend:v1
@@ -53,6 +55,8 @@ spec:
       labels:
         app: bionexa-frontend
     spec:
+      imagePullSecrets:
+        - name: nexus-secret
       containers:
         - name: frontend
           image: nexus-service-for-docker-hosted-registry.nexus.svc.cluster.local:8085/bionexa_kanishk/bionexa-frontend:v1
