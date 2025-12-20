@@ -299,6 +299,14 @@ spec:
 
                         echo "===== Final Pod Status ====="
                         kubectl get pods -n ${NAMESPACE}
+
+                        echo "===== Ingress URL ====="
+                        kubectl get ingress -n ${NAMESPACE} -o wide || echo "No ingress found"
+                        echo ""
+                        echo "To access frontend:"
+                        echo "1. Check ingress ADDRESS above"
+                        echo "2. Or use: kubectl port-forward -n ${NAMESPACE} service/bionexa-frontend 8080:80"
+                        echo "   Then open: http://localhost:8080"
                     '''
                 }
             }
