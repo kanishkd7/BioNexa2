@@ -1,4 +1,5 @@
 # Stage 1: Build React App
+# Using mirror.gcr.io to avoid Docker Hub rate limits
 FROM mirror.gcr.io/library/node:20 AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
