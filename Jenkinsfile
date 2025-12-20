@@ -58,7 +58,8 @@ spec:
 
     environment {
         NAMESPACE = "2401042"
-        NEXUS_HOST = "127.0.0.1:30085"
+        NEXUS_HOST_PUSH = "nexus-service-for-docker-hosted-registry.nexus.svc.cluster.local:8085"
+        NEXUS_HOST_PULL = "127.0.0.1:30085"
         NEXUS_REPO = "bionexa_kanishk"
         NPM_REGISTRY = ""
     }
@@ -221,7 +222,7 @@ spec:
             steps {
                 container("dind") {
                     sh """
-                        docker login http://${NEXUS_HOST} \
+                        docker login http://${NEXUS_HOST_PUSH} \
                           -u student \
                           -p Imcc@2025
                     """
@@ -234,11 +235,11 @@ spec:
             steps {
                 container("dind") {
                     sh """
-                        docker tag bionexa-frontend:latest ${NEXUS_HOST}/${NEXUS_REPO}/bionexa-frontend:v1
-                        docker tag bionexa-backend:latest  ${NEXUS_HOST}/${NEXUS_REPO}/bionexa-backend:v1
+                        docker tag bionexa-frontend:latest ${NEXUS_HOST_PUSH}/${NEXUS_REPO}/bionexa-frontend:v1
+                        docker tag bionexa-backend:latest  ${NEXUS_HOST_PUSH}/${NEXUS_REPO}/bionexa-backend:v1
 
-                        docker push ${NEXUS_HOST}/${NEXUS_REPO}/bionexa-frontend:v1
-                        docker push ${NEXUS_HOST}/${NEXUS_REPO}/bionexa-backend:v1
+                        docker push ${NEXUS_HOST_PUSH}/${NEXUS_REPO}/bionexa-frontend:v1
+                        docker push ${NEXUS_HOST_PUSH}/${NEXUS_REPO}/bionexa-backend:v1
                     """
                 }
             }
@@ -259,7 +260,7 @@ spec:
                         echo "===== Creating/Updating imagePullSecret for Nexus ====="
                         kubectl delete secret nexus-secret -n ${NAMESPACE} --ignore-not-found=true
                         kubectl create secret docker-registry nexus-secret \
-                          --docker-server=http://127.0.0.1:30085 \
+                          --docker-server=http://${NEXUS_HOST_PULL} \
                           --docker-username=student \
                           --docker-password=Imcc@2025 \
                           --docker-email=dummy@example.com \
