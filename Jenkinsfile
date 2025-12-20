@@ -273,11 +273,29 @@ spec:
                         echo "===== Applying Ingress (if present) ====="
                         kubectl apply -n ${NAMESPACE} -f k8s/ingress.yaml || true
 
-                        echo "===== Rollout Status ====="
-                        kubectl rollout status deployment/bionexa-frontend -n ${NAMESPACE} --timeout=300s
-                        kubectl rollout status deployment/bionexa-backend -n ${NAMESPACE} --timeout=300s
+                        echo "===== Waiting 10 seconds for pods to start ====="
+                        sleep 10
 
-                        echo "===== Pods ====="
+                        echo "===== Pod Status ====="
+                        kubectl get pods -n ${NAMESPACE} -o wide
+
+                        echo "===== Frontend Pod Events (if exists) ====="
+                        FRONTEND_POD=$(kubectl get pods -n ${NAMESPACE} -l app=bionexa-frontend -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
+                        if [ -n "$FRONTEND_POD" ]; then
+                            kubectl describe pod $FRONTEND_POD -n ${NAMESPACE} | tail -20 || true
+                        fi
+
+                        echo "===== Backend Pod Events (if exists) ====="
+                        BACKEND_POD=$(kubectl get pods -n ${NAMESPACE} -l app=bionexa-backend -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
+                        if [ -n "$BACKEND_POD" ]; then
+                            kubectl describe pod $BACKEND_POD -n ${NAMESPACE} | tail -20 || true
+                        fi
+
+                        echo "===== Rollout Status ====="
+                        kubectl rollout status deployment/bionexa-frontend -n ${NAMESPACE} --timeout=300s || true
+                        kubectl rollout status deployment/bionexa-backend -n ${NAMESPACE} --timeout=300s || true
+
+                        echo "===== Final Pod Status ====="
                         kubectl get pods -n ${NAMESPACE}
                     '''
                 }
