@@ -258,7 +258,7 @@ spec:
                         echo "===== Creating/Updating imagePullSecret for Nexus ====="
                         kubectl delete secret nexus-secret -n ${NAMESPACE} --ignore-not-found=true
                         kubectl create secret docker-registry nexus-secret \
-                          --docker-server=${NEXUS_HOST} \
+                          --docker-server=http://${NEXUS_HOST} \
                           --docker-username=student \
                           --docker-password=Imcc@2025 \
                           --docker-email=dummy@example.com \

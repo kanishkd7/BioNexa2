@@ -39,6 +39,7 @@ spec:
         - name: firebase-service-account
           secret:
             secretName: firebase-service-account
+            optional: true
 ---
 apiVersion: apps/v1
 kind: Deployment
