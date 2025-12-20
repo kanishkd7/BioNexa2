@@ -1,4 +1,4 @@
-FROM mirror.gcr.io/library/node:18-bullseye AS base
+FROM mirror.gcr.io/library/node:20 AS base
 
 WORKDIR /app
 
