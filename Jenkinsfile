@@ -39,6 +39,7 @@ spec:
     image: docker:dind
     args:
       - "--storage-driver=overlay2"
+      - "--insecure-registry=127.0.0.1:30085"
       - "--insecure-registry=nexus.imcc.com:8085"
       - "--insecure-registry=nexus-service-for-docker-hosted-registry.nexus.svc.cluster.local:8085"
     securityContext:
@@ -57,7 +58,7 @@ spec:
 
     environment {
         NAMESPACE = "2401042"
-        NEXUS_HOST = "nexus-service-for-docker-hosted-registry.nexus.svc.cluster.local:8085"
+        NEXUS_HOST = "127.0.0.1:30085"
         NEXUS_REPO = "bionexa_kanishk"
         NPM_REGISTRY = ""
     }
@@ -233,11 +234,11 @@ spec:
             steps {
                 container("dind") {
                     sh """
-                        docker tag bionexa-frontend:latest ${NEXUS_HOST}/bionexa-frontend:v1
-                        docker tag bionexa-backend:latest  ${NEXUS_HOST}/bionexa-backend:v1
+                        docker tag bionexa-frontend:latest ${NEXUS_HOST}/${NEXUS_REPO}/bionexa-frontend:v1
+                        docker tag bionexa-backend:latest  ${NEXUS_HOST}/${NEXUS_REPO}/bionexa-backend:v1
 
-                        docker push ${NEXUS_HOST}/bionexa-frontend:v1
-                        docker push ${NEXUS_HOST}/bionexa-backend:v1
+                        docker push ${NEXUS_HOST}/${NEXUS_REPO}/bionexa-frontend:v1
+                        docker push ${NEXUS_HOST}/${NEXUS_REPO}/bionexa-backend:v1
                     """
                 }
             }
@@ -258,7 +259,7 @@ spec:
                         echo "===== Creating/Updating imagePullSecret for Nexus ====="
                         kubectl delete secret nexus-secret -n ${NAMESPACE} --ignore-not-found=true
                         kubectl create secret docker-registry nexus-secret \
-                          --docker-server=http://${NEXUS_HOST} \
+                          --docker-server=http://127.0.0.1:30085 \
                           --docker-username=student \
                           --docker-password=Imcc@2025 \
                           --docker-email=dummy@example.com \
