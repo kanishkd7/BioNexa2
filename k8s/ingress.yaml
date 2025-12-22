@@ -5,7 +5,7 @@ metadata:
   namespace: "2401042"
 spec:
   rules:
-    - host: bionexa-2401042.imcc.local  # TODO: confirm with your sir
+    - host: bionexa-2401042-kanishk.imcc.local  # TODO: confirm with your sir
       http:
         paths:
           - path: /
